@@ -1,5 +1,17 @@
-import { Provider } from 'react-redux';
-const { legacy_createStore } = require("redux");
-const { rootReducer } = require("./Reducer");
 
-export const store = legacy_createStore(rootReducer)
+import { createStore } from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { rootReducer } from './Reducer';  
+
+const persistConfig = {
+  key: 'root',
+  storage,
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const store = createStore(persistedReducer);
+const persistor = persistStore(store);
+
+export { store, persistor };

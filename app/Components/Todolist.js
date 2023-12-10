@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { addTodo, removeTodo, clearTodo, toggleTodo } from "../Redux/Action";
 import { useDispatch, useSelector } from "react-redux";
+import { useGetUserInfo } from "../Firebase config/useGetUserInfo";
+import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../Firebase config/Firebase";
 import "../globals.css";
 
 export const Todolist = () => {
@@ -9,13 +13,10 @@ export const Todolist = () => {
   const dispatch = useDispatch();
   const selector = useSelector((state) => state.todoReducer.list);
   const [errorMessage, setErrorMessage] = useState("");
-
+  const navigate = useNavigate();
+  const { name, profilePhoto} = useGetUserInfo();
   const handleAddTodo = () => {
-    if (
-      title.trim() === "" ||
-      description.trim() === "" ||
-      /\d/.test(title)
-    ) {
+    if (title.trim() === "" || description.trim() === "" || /\d/.test(title)) {
       setErrorMessage(
         "Invalid input. Please provide a valid title and description."
       );
@@ -23,17 +24,43 @@ export const Todolist = () => {
       dispatch(addTodo(title, description));
       setTitle("");
       setDescription("");
-      setErrorMessage("")
+      setErrorMessage("");
     }
   };
 
   const handleToggleTodo = (id) => {
     dispatch(toggleTodo(id));
   };
-
+  const signUserOut = async () => {
+    try {
+      await signOut(auth);
+      localStorage.clear();
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+    }
+  };
   return (
     <div className="flex-col bg-gradient-to-r from-cyan-200 to-blue-200 min-h-screen w-screen flex items-center justify-center ">
       <div className="bg-slate-200 rounded-lg p-8 shadow-md w-96">
+        {profilePhoto && (
+          <div className=" mb-4 flex float-right">
+            <div className="p-2">
+              <p className="text-gray-800">{name}</p>
+              <button
+                onClick={signUserOut}
+                className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+            <img
+              className="w-14 h-14 rounded-full"
+              src={profilePhoto}
+              alt="Profile"
+            />
+          </div>
+        )}
         <input
           type="text"
           onChange={(e) => setTitle(e.target.value)}
